@@ -24,17 +24,27 @@
 (def fadeout-time 600)
 (def char-width 14)
 (def enter-key 13)
+(def parentheses-classes-count 7)
+
+(defn parentheses-class-name [index]
+  (str "parentheses-" (mod index parentheses-classes-count)))
 
 (deftemplate input-with-code [koan]
   [:div {:class (str "koan koan-" (:index (current-koan-index)))}
     [:div {:class "description"} (:description koan)]
     [:div {:class "code-box"}
-      (for [text (:code-strings koan)]
-        (if (= text :input)
-          [:span {:class "code"}
-            [:span {:class "shadow"}]
-            [:input {:name "code"}]]
-          [:span {:class "text"} text]))]
+      (for [part (:code-parts koan)]
+        (cond
+          (= part :input)
+            [:span {:class "code"}
+              [:span {:class "shadow"}]
+              [:input {:name "code"}]]
+          (vector? part)
+            [:span {:class (str "text " (parentheses-class-name (second part)))}
+              (first part)]
+          :else
+            [:span {:class "text"}
+              part]))]
       (if-not (nil? (:fn-strings koan))
         [:div {:class "functions"}
           (for [function (:fn-strings koan)]
@@ -52,7 +62,7 @@
 (defn input-string []
   (letfn [(input-is-empty? [el] (clojure.string/blank? (.-value el)))
           (get-input-string [el]
-            (cond (= "text" (.-className el)) ($/text ($ el))
+            (cond (= "text" (subs (.-className el) 0 4)) ($/text ($ el))
                   (= "INPUT" (.-tagName el)) (.-value el)))]
     (if (some input-is-empty? ($ ".code-box input"))
       ""
@@ -151,7 +161,7 @@
     (cljs/eval-str compiler-state input nil
       {:eval cljs/js-eval}
       (fn [result]
-        (log result)
+        (log (clj->js result))
         (if (or (:error result) (not= (:value result) true))
           (show-error-message)
           (load-next-koan))))))
