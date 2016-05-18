@@ -2,4 +2,4 @@
 
 rm koans.js
 rm -r out/
-lein cljsbuild once
+lein cljsbuild once prod
