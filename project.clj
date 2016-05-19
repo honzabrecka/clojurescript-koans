@@ -22,14 +22,14 @@
                          :figwheel {:load-warninged-code true}
                          :compiler {:main koans.core
                                     :output-to "koans.js"
-                                    :output-dir "out"
+                                    :output-dir "out/dev"
                                     :optimizations :none}}
                         {:id "prod"
                          :source-paths ["src"]
                          :compiler {
-                                    :main 'koans.core
+                                    :main koans.core
                                     :output-to "koans.js"
-                                    :output-dir "out"
+                                    :output-dir "out/prod"
                                     :optimizations :none
                                     :source-map true}}]
               })
