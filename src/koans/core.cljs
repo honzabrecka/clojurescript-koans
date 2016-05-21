@@ -49,12 +49,18 @@
         [:div {:class "functions"}
           (for [function (:fn-strings koan)]
             [:div {:class "function"}
-              (for [text function]
-                (if (= text :input)
-                  [:span {:class "code"}
-                    [:span {:class "shadow"}]
-                    [:input {:name "code"}]]
-                  [:pre {:class "text"} text]))])])])
+              [:pre {:class "text"}
+                (for [part function]
+                  (cond
+                    (= part :input)
+                      [:span {:class "code"}
+                        [:span {:class "shadow"}]
+                        [:input {:name "code"}]]
+                    (vector? part)
+                      [:span {:class (parentheses-class-name (second part))}
+                        (first part)]
+                    :else
+                      part))]])])])
 
 (deftemplate error-message []
   [:div {:class "error"} "You have not yet attained enlightenment."])

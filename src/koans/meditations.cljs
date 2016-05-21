@@ -102,5 +102,5 @@
           (catch js/Object _ (first category-list)))
         description (first item)
         code-parts (expr-to-array (last item))
-        fn-strings (map #(expr-to-array %) (:fns category))]
+        fn-strings (map expr-to-array (:fns category))]
     (Koan. description code-parts fn-strings)))
