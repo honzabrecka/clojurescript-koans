@@ -29,53 +29,56 @@
 (defn parentheses-class-name [index]
   (str "parentheses-" (mod index parentheses-classes-count)))
 
+(defn input-with-code-block [parts]
+  (for [part parts]
+    (cond
+      (= part :input)
+        [:span {:class "code"}
+          [:span {:class "shadow"}]
+          [:input {:name "code"}]]
+      (vector? part)
+        [:span {:class (str "text " (parentheses-class-name (second part)))}
+          (first part)]
+      :else
+        [:span {:class "text"}
+          part])))
+
 (deftemplate input-with-code [koan]
   [:div {:class (str "koan koan-" (:index (current-koan-index)))}
     [:div {:class "description"} (:description koan)]
     [:div {:class "code-box"}
-      (for [part (:code-parts koan)]
-        (cond
-          (= part :input)
-            [:span {:class "code"}
-              [:span {:class "shadow"}]
-              [:input {:name "code"}]]
-          (vector? part)
-            [:span {:class (str "text " (parentheses-class-name (second part)))}
-              (first part)]
-          :else
-            [:span {:class "text"}
-              part]))]
+      (input-with-code-block (:code-parts koan))]
       (if-not (nil? (:fn-strings koan))
         [:div {:class "functions"}
           (for [function (:fn-strings koan)]
             [:div {:class "function"}
-              [:pre {:class "text"}
-                (for [part function]
-                  (cond
-                    (= part :input)
-                      [:span {:class "code"}
-                        [:span {:class "shadow"}]
-                        [:input {:name "code"}]]
-                    (vector? part)
-                      [:span {:class (parentheses-class-name (second part))}
-                        (first part)]
-                    :else
-                      part))]])])])
+              [:pre
+                (input-with-code-block function)]])])])
 
 (deftemplate error-message []
   [:div {:class "error"} "You have not yet attained enlightenment."])
 
+(defn input-with-element-content [el]
+  (->> ($/children ($ el))
+       (map #(let [$el ($ %)]
+              (cond ($/has-class $el "text") ($/text $el)
+                    ($/has-class $el "code") ($/val ($ "input" $el)))))
+       (clojure.string/join "")))
+
+(defn input-is-empty? [el]
+  (clojure.string/blank? ($/val ($ el))))
+
 (defn input-string []
-  (letfn [(input-is-empty? [el] (clojure.string/blank? (.-value el)))
-          (get-input-string [el]
-            (cond (= "text" (subs (.-className el) 0 4)) ($/text ($ el))
-                  (= "INPUT" (.-tagName el)) (.-value el)))]
-    (if (some input-is-empty? ($ ".code-box input"))
-      ""
-      (->> (concat ($ ".functions .text, .functions input")
-                   ($ ".code-box .text, .code-box input"))
-           (map get-input-string)
-           (clojure.string/join " ")))))
+  (if (some input-is-empty? ($ ".code-box input"))
+    ""
+    (->> (concat ($ ".function pre")
+                 ($ ".code-box"))
+         (map input-with-element-content)
+         (clojure.string/join " "))))
+
+;file:///Users/jx/Work/clojurescript-koans/index.html#conditionals/5
+;file:///Users/jx/Work/clojurescript-koans/index.html#runtime-polymorphism/4
+;file:///Users/jx/Work/clojurescript-koans/index.html#functions/4
 
 (defn load-next-koan []
   (update-location-hash))
